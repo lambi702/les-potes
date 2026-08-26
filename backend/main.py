@@ -55,6 +55,24 @@ STATIC_DIR = "/app/static"
 if os.path.isdir(STATIC_DIR):
     app.mount("/assets", StaticFiles(directory=os.path.join(STATIC_DIR, "assets")), name="assets")
 
+    icons_dir = os.path.join(STATIC_DIR, "icons")
+    if os.path.isdir(icons_dir):
+        app.mount("/icons", StaticFiles(directory=icons_dir), name="icons")
+
+    # Fichiers PWA à la racine : servis explicitement (sinon le fallback SPA
+    # ci-dessous renverrait index.html à leur place).
+    for filename, media_type in [
+        ("manifest.webmanifest", "application/manifest+json"),
+        ("sw.js", "application/javascript"),
+    ]:
+        filepath = os.path.join(STATIC_DIR, filename)
+        if os.path.isfile(filepath):
+            def _make_handler(fp, mt):
+                async def _serve():
+                    return FileResponse(fp, media_type=mt)
+                return _serve
+            app.add_api_route(f"/{filename}", _make_handler(filepath, media_type), methods=["GET"])
+
     @app.exception_handler(StarletteHTTPException)
     async def spa_fallback(request, exc):
         if exc.status_code == 404 and not request.url.path.startswith("/api"):

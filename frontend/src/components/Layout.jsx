@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { api } from '../api'
+import InstallBanner from './InstallBanner'
 
 const NAV_ITEMS = [
   { to: '/', label: 'QG', icon: '🏠' },
@@ -133,6 +134,8 @@ export default function Layout({ children }) {
           </nav>
         </div>
       </header>
+
+      <InstallBanner />
 
       {nextEvent && (
         <NavLink
