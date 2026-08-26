@@ -73,7 +73,7 @@ export default function Layout({ children }) {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="bg-potes-panel border-b-4 border-black sticky top-0 z-20">
+      <header className="bg-potes-panel border-b-4 border-black sticky top-0 z-20 safe-area-top">
         <div className="max-w-5xl mx-auto px-4 pt-3">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 min-w-0 flex-shrink">
@@ -148,7 +148,7 @@ export default function Layout({ children }) {
 
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 py-6">{children}</main>
 
-      <footer className="text-center text-white/30 text-xs py-4 font-display">
+      <footer className="text-center text-white/30 text-xs py-4 font-display safe-area-bottom">
         Les Potes — fait avec 🔥 (et un peu de peket)
       </footer>
     </div>

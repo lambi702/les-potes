@@ -39,3 +39,13 @@ body {
   letter-spacing: 1px;
   text-shadow: 3px 3px 0 rgba(0,0,0,0.4);
 }
+
+/* PWA iOS en plein écran (status bar "black-translucent") : le contenu peut
+   passer sous la barre de statut/l'encoche. On repousse l'en-tête collant
+   sous cette zone pour éviter que l'heure/le réseau se superposent au logo. */
+.safe-area-top {
+  padding-top: env(safe-area-inset-top);
+}
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}

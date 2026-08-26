@@ -34,7 +34,7 @@ export default function Join() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
+    <div className="min-h-screen flex items-center justify-center px-4 safe-area-top safe-area-bottom">
       <div className="w-full max-w-sm">
         <div className="text-center mb-6">
           <div className="text-5xl mb-2">🏛️</div>
