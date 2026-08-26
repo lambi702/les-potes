@@ -1,7 +1,7 @@
 import os
 from datetime import datetime, timedelta
 
-from fastapi import Depends, HTTPException, Request, status
+from fastapi import Depends, HTTPException, Request, WebSocket, status
 from jose import jwt, JWTError
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
@@ -33,8 +33,7 @@ def create_token(user_id: int) -> str:
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
 
-def get_current_user(request: Request, db: Session = Depends(get_db)) -> models.User:
-    token = request.cookies.get(COOKIE_NAME)
+def _user_from_token(token: str | None, db: Session) -> models.User:
     if not token:
         raise HTTPException(status_code=401, detail="Non connecté")
     try:
@@ -46,6 +45,14 @@ def get_current_user(request: Request, db: Session = Depends(get_db)) -> models.
     if not user:
         raise HTTPException(status_code=401, detail="Utilisateur introuvable")
     return user
+
+
+def get_current_user(request: Request, db: Session = Depends(get_db)) -> models.User:
+    return _user_from_token(request.cookies.get(COOKIE_NAME), db)
+
+
+def get_current_user_ws(websocket: WebSocket, db: Session) -> models.User:
+    return _user_from_token(websocket.cookies.get(COOKIE_NAME), db)
 
 
 def require_admin(user: models.User = Depends(get_current_user)) -> models.User:

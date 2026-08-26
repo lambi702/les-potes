@@ -26,7 +26,11 @@ docker compose up --build
 - Pseudo (affiché partout) + nom complet (plus formel), séparés et éditables
 - Calendrier d'événements avec RSVP (✅/🤔/❌)
 - Troc d'objets entre participants (recherche, emprunt, retour)
-- Fil de ragots avec tags et réactions emoji
+- Fil de ragots avec tags, réactions emoji et commentaires
+- Chat de groupe en direct (WebSocket)
+- Gamification : points/niveaux, badges, streaks d'événements, classement
+- Profil enrichi : anniversaire, statut de dispo, carte "qui habite où" (Leaflet/OSM, sans clé API)
+- Cloche de notifications in-app (nouveautés depuis la dernière visite)
 - Espace feedback pour la phase de test (UAT)
 - Panneau admin (staff) : gestion des participants, droits, lien d'invitation
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { api } from '../api'
@@ -8,6 +8,9 @@ const NAV_ITEMS = [
   { to: '/events', label: 'Calendrier', icon: '📅' },
   { to: '/loans', label: 'Troc', icon: '🎒' },
   { to: '/journal', label: 'Ragots', icon: '👀' },
+  { to: '/chat', label: 'Chat', icon: '💬' },
+  { to: '/classement', label: 'Classement', icon: '🏆' },
+  { to: '/carte', label: 'Carte', icon: '🗺️' },
   { to: '/feedback', label: 'Feedback', icon: '🧪' },
 ]
 
@@ -30,14 +33,41 @@ function useNextEvent() {
   return nextEvent
 }
 
+function useActivity() {
+  const [count, setCount] = useState(0)
+
+  const refresh = useCallback(() => {
+    api.getActivity().then((a) => setCount(a.total)).catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    refresh()
+    const interval = setInterval(refresh, 30000)
+    return () => clearInterval(interval)
+  }, [refresh])
+
+  const markSeen = useCallback(async () => {
+    await api.markSeen()
+    setCount(0)
+  }, [])
+
+  return { count, markSeen }
+}
+
 export default function Layout({ children }) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const nextEvent = useNextEvent()
+  const { count: activityCount, markSeen } = useActivity()
 
   const handleLogout = async () => {
     await logout()
     navigate('/login')
+  }
+
+  const handleBell = async () => {
+    await markSeen()
+    navigate('/')
   }
 
   return (
@@ -51,6 +81,14 @@ export default function Layout({ children }) {
             </div>
             {user && (
               <div className="flex items-center gap-1.5 flex-shrink-0">
+                <button onClick={handleBell} title="Nouveautés" className="relative bg-white/5 hover:bg-white/10 rounded-lg px-2 py-1.5">
+                  🔔
+                  {activityCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-potes-red text-white text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center pixel-border">
+                      {activityCount > 9 ? '9+' : activityCount}
+                    </span>
+                  )}
+                </button>
                 <NavLink to={`/participant/${user.id}`} className="flex items-center gap-1.5 bg-white/5 rounded-lg px-2 py-1 hover:bg-white/10">
                   <span className="text-lg">{user.avatar_emoji}</span>
                   <span className="hidden sm:inline font-display font-semibold text-sm">{user.display_name}</span>

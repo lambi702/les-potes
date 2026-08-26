@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 from typing import Optional
 from pydantic import BaseModel, ConfigDict
 
@@ -39,6 +39,11 @@ class UserPublic(BaseModel):
     bio: str
     is_admin: bool
     can_manage_money: bool
+    birthday: Optional[date] = None
+    availability_status: str = ""
+    home_lat: Optional[float] = None
+    home_lng: Optional[float] = None
+    home_label: str = ""
 
 
 class UserMe(UserPublic):
@@ -64,6 +69,11 @@ class UserUpdate(BaseModel):
     bio: Optional[str] = None
     is_admin: Optional[bool] = None
     can_manage_money: Optional[bool] = None
+    birthday: Optional[date] = None
+    availability_status: Optional[str] = None
+    home_lat: Optional[float] = None
+    home_lng: Optional[float] = None
+    home_label: Optional[str] = None
 
 
 # ---- Événements ----
@@ -161,3 +171,69 @@ class PostCreate(BaseModel):
 
 class ReactRequest(BaseModel):
     emoji: str
+
+
+class CommentOut(BaseModel):
+    id: int
+    content: str
+    author: UserPublic
+    created_at: datetime
+
+
+class CommentCreate(BaseModel):
+    content: str
+
+
+# ---- Chat ----
+class ChatMessageOut(BaseModel):
+    id: int
+    content: str
+    author: UserPublic
+    created_at: datetime
+
+
+class ChatMessageCreate(BaseModel):
+    content: str
+
+
+# ---- Gamification ----
+class BadgeOut(BaseModel):
+    key: str
+    emoji: str
+    label: str
+    description: str
+    earned: bool
+
+
+class UserStats(BaseModel):
+    points: int
+    level_title: str
+    posts_count: int
+    reactions_received: int
+    items_count: int
+    events_attended: int
+    event_streak: int
+    comments_count: int
+    chat_messages_count: int
+    badges: list[BadgeOut]
+
+
+class LeaderboardEntry(BaseModel):
+    user: UserPublic
+    value: int
+
+
+class LeaderboardOut(BaseModel):
+    most_posts: list[LeaderboardEntry]
+    most_reactions: list[LeaderboardEntry]
+    most_items: list[LeaderboardEntry]
+    longest_streak: list[LeaderboardEntry]
+    most_points: list[LeaderboardEntry]
+
+
+class ActivityOut(BaseModel):
+    new_posts: int
+    new_comments: int
+    new_events: int
+    new_chat_messages: int
+    total: int

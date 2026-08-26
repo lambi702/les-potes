@@ -5,6 +5,15 @@ import { useAuth } from '../context/AuthContext'
 import RoleBadge from '../components/RoleBadge'
 import EmojiPicker from '../components/EmojiPicker'
 
+const AVAILABILITY_OPTIONS = ['Dispo', 'Occupé', 'En vadrouille']
+
+function isBirthdayToday(birthday) {
+  if (!birthday) return false
+  const today = new Date()
+  const [, month, day] = birthday.split('-').map(Number)
+  return today.getMonth() + 1 === month && today.getDate() === day
+}
+
 export default function Profile() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -16,6 +25,7 @@ export default function Profile() {
   const [currentPw, setCurrentPw] = useState('')
   const [newPw, setNewPw] = useState('')
   const [pwError, setPwError] = useState('')
+  const [stats, setStats] = useState(null)
 
   const isSelf = me && Number(id) === me.id
   const canEdit = isSelf || me?.is_admin
@@ -25,6 +35,7 @@ export default function Profile() {
       setParticipant(p)
       setBio(p.bio)
     })
+    api.getUserStats(id).then(setStats)
   }, [id])
 
   if (!participant) return <p className="font-display text-white/50">Chargement...</p>
@@ -49,6 +60,8 @@ export default function Profile() {
     if (display_name.trim()) updateField({ display_name: display_name.trim() })
   }
   const changeRealName = (real_name) => updateField({ real_name: real_name.trim() })
+  const changeBirthday = (birthday) => updateField({ birthday: birthday || null })
+  const changeAvailability = (availability_status) => updateField({ availability_status })
 
   const submitPasswordChange = async (e) => {
     e.preventDefault()
@@ -69,9 +82,18 @@ export default function Profile() {
         <div className="flex items-center gap-4">
           <span className="text-6xl">{participant.avatar_emoji}</span>
           <div>
-            <h1 className="font-display font-extrabold text-xl">{participant.display_name}</h1>
+            <h1 className="font-display font-extrabold text-xl">
+              {participant.display_name} {isBirthdayToday(participant.birthday) && '🎂'}
+            </h1>
             {participant.real_name && <p className="text-white/40 text-sm font-display">{participant.real_name}</p>}
-            <div className="mt-1"><RoleBadge role={participant.role_label} /></div>
+            <div className="mt-1 flex items-center gap-1.5 flex-wrap">
+              <RoleBadge role={participant.role_label} />
+              {participant.availability_status && (
+                <span className="text-[10px] font-display font-bold px-2 py-0.5 rounded-full pixel-border bg-white/10 text-white">
+                  {participant.availability_status}
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
@@ -98,6 +120,35 @@ export default function Profile() {
               className="w-full rounded-lg bg-potes-bg border-2 border-black px-3 py-2 font-display focus:outline-none focus:ring-2 focus:ring-potes-red"
               placeholder="ex: Julie Dupont (optionnel)"
             />
+          </div>
+        )}
+
+        {canEdit && (
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <p className="text-xs font-display font-bold text-white/60 mb-1">🎂 Anniversaire</p>
+              <input
+                type="date"
+                key={`bd-${participant.birthday}`}
+                defaultValue={participant.birthday || ''}
+                onBlur={(e) => changeBirthday(e.target.value)}
+                className="w-full rounded-lg bg-potes-bg border-2 border-black px-3 py-2 font-display text-sm focus:outline-none focus:ring-2 focus:ring-potes-red"
+              />
+            </div>
+            <div>
+              <p className="text-xs font-display font-bold text-white/60 mb-1">Statut</p>
+              <input
+                list="availability-suggestions"
+                key={`av-${participant.availability_status}`}
+                defaultValue={participant.availability_status}
+                onBlur={(e) => changeAvailability(e.target.value)}
+                placeholder="Dispo, Occupé..."
+                className="w-full rounded-lg bg-potes-bg border-2 border-black px-3 py-2 font-display text-sm focus:outline-none focus:ring-2 focus:ring-potes-red"
+              />
+              <datalist id="availability-suggestions">
+                {AVAILABILITY_OPTIONS.map((o) => <option key={o} value={o} />)}
+              </datalist>
+            </div>
           </div>
         )}
 
@@ -170,6 +221,47 @@ export default function Profile() {
                 </button>
               </form>
             )}
+          </div>
+        )}
+
+        {stats && (
+          <div className="border-t border-white/10 pt-4">
+            <div className="flex items-center justify-between mb-3">
+              <p className="font-display font-bold text-sm">📊 Stats</p>
+              <span className="text-xs font-display font-bold px-2 py-1 rounded-full pixel-border bg-potes-gold text-potes-bg">
+                {stats.points} pts · {stats.level_title}
+              </span>
+            </div>
+            <div className="grid grid-cols-3 gap-2 mb-4 text-center">
+              {[
+                ['📝', stats.posts_count, 'ragots'],
+                ['🔧', stats.items_count, 'objets'],
+                ['❤️', stats.reactions_received, 'réactions'],
+                ['📅', stats.events_attended, 'events'],
+                ['🔥', stats.event_streak, 'streak'],
+                ['💬', stats.chat_messages_count, 'messages'],
+              ].map(([emoji, value, label]) => (
+                <div key={label} className="bg-white/5 rounded-lg py-2">
+                  <p className="text-lg">{emoji}</p>
+                  <p className="font-display font-bold text-sm">{value}</p>
+                  <p className="text-white/40 text-[10px] font-display">{label}</p>
+                </div>
+              ))}
+            </div>
+            <p className="font-display font-bold text-sm mb-2">🎖️ Badges</p>
+            <div className="flex flex-wrap gap-2">
+              {stats.badges.map((b) => (
+                <span
+                  key={b.key}
+                  title={b.description}
+                  className={`text-xs font-display font-bold px-2.5 py-1 rounded-full pixel-border ${
+                    b.earned ? 'bg-potes-red text-white' : 'bg-white/5 text-white/30'
+                  }`}
+                >
+                  {b.emoji} {b.label}
+                </span>
+              ))}
+            </div>
           </div>
         )}
 

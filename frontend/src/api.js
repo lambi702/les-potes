@@ -57,4 +57,17 @@ export const api = {
   createPost: (payload) => request('/posts', { method: 'POST', body: JSON.stringify(payload) }),
   deletePost: (id) => request(`/posts/${id}`, { method: 'DELETE' }),
   reactToPost: (id, emoji) => request(`/posts/${id}/react`, { method: 'POST', body: JSON.stringify({ emoji }) }),
+
+  listComments: (postId) => request(`/posts/${postId}/comments`),
+  createComment: (postId, content) => request(`/posts/${postId}/comments`, { method: 'POST', body: JSON.stringify({ content }) }),
+  deleteComment: (id) => request(`/posts/comments/${id}`, { method: 'DELETE' }),
+
+  listChatMessages: () => request('/chat/messages'),
+  sendChatMessage: (content) => request('/chat/messages', { method: 'POST', body: JSON.stringify({ content }) }),
+
+  getLeaderboard: () => request('/stats/leaderboard'),
+  getMyStats: () => request('/stats/me'),
+  getUserStats: (id) => request(`/stats/user/${id}`),
+  getActivity: () => request('/stats/activity'),
+  markSeen: () => request('/stats/mark-seen', { method: 'POST' }),
 }

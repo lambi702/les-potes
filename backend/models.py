@@ -2,7 +2,7 @@ import enum
 from datetime import datetime
 
 from sqlalchemy import (
-    Column, Integer, String, Boolean, Text, DateTime, ForeignKey, Enum
+    Column, Integer, String, Boolean, Text, DateTime, Date, Float, ForeignKey, Enum
 )
 from sqlalchemy.orm import relationship
 
@@ -46,6 +46,14 @@ class User(Base):
     can_manage_money = Column(Boolean, nullable=False, default=False)
     must_change_password = Column(Boolean, nullable=False, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+    # Profil enrichi
+    birthday = Column(Date, nullable=True)
+    availability_status = Column(String(40), nullable=False, default="")
+    home_lat = Column(Float, nullable=True)
+    home_lng = Column(Float, nullable=True)
+    home_label = Column(String(80), nullable=False, default="")
+    last_seen_at = Column(DateTime, nullable=True)
 
     owned_items = relationship("Item", foreign_keys="Item.owner_id", back_populates="owner")
     borrowed_items = relationship("Item", foreign_keys="Item.borrower_id", back_populates="borrower")
@@ -145,3 +153,26 @@ class PostReaction(Base):
 
     post = relationship("Post", back_populates="reactions")
     user = relationship("User")
+
+
+class PostComment(Base):
+    __tablename__ = "post_comments"
+
+    id = Column(Integer, primary_key=True)
+    post_id = Column(Integer, ForeignKey("posts.id", ondelete="CASCADE"), nullable=False)
+    author_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    content = Column(Text, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    author = relationship("User")
+
+
+class ChatMessage(Base):
+    __tablename__ = "chat_messages"
+
+    id = Column(Integer, primary_key=True)
+    author_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    content = Column(Text, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    author = relationship("User")

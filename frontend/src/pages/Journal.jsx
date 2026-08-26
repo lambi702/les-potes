@@ -123,7 +123,7 @@ export default function Journal() {
                 </p>
               )}
 
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-1.5 mb-2">
                 {REACTIONS.map((emoji) => {
                   const count = post.reactions[emoji] || 0
                   const active = post.my_reactions.includes(emoji)
@@ -140,11 +140,72 @@ export default function Journal() {
                   )
                 })}
               </div>
+
+              <CommentThread postId={post.id} me={me} />
             </div>
           )
         })}
         {posts.length === 0 && <p className="text-white/40 font-display">Aucun ragot pour l'instant. Sois le·a premier·ère 👀</p>}
       </div>
+    </div>
+  )
+}
+
+function CommentThread({ postId, me }) {
+  const [open, setOpen] = useState(false)
+  const [comments, setComments] = useState(null)
+  const [text, setText] = useState('')
+
+  const load = () => api.listComments(postId).then(setComments)
+
+  const toggle = () => {
+    setOpen((v) => !v)
+    if (!comments) load()
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    if (!text.trim()) return
+    await api.createComment(postId, text.trim())
+    setText('')
+    load()
+  }
+
+  const handleDelete = async (id) => { await api.deleteComment(id); load() }
+
+  return (
+    <div className="border-t border-white/10 pt-2">
+      <button onClick={toggle} className="text-xs font-display font-bold text-white/50 hover:text-white">
+        💭 {open ? 'Masquer' : 'Voir'} les commentaires{comments && comments.length > 0 && ` (${comments.length})`}
+      </button>
+
+      {open && (
+        <div className="mt-2 space-y-2">
+          {comments?.map((c) => (
+            <div key={c.id} className="flex items-start justify-between gap-2 bg-white/5 rounded-lg px-3 py-1.5">
+              <p className="text-sm font-display">
+                <span className="font-bold">{c.author.avatar_emoji} {c.author.display_name}</span> {c.content}
+              </p>
+              {(c.author.id === me?.id || me?.is_admin) && (
+                <button onClick={() => handleDelete(c.id)} className="text-potes-flame text-xs font-display flex-shrink-0">✕</button>
+              )}
+            </div>
+          ))}
+          {comments?.length === 0 && <p className="text-white/30 text-xs font-display">Aucun commentaire.</p>}
+
+          <form onSubmit={handleSubmit} className="flex gap-2">
+            <input
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder="Réagir..."
+              className="flex-1 rounded-lg bg-potes-bg border-2 border-black px-3 py-1.5 font-display text-sm"
+            />
+            <button type="submit" className="bg-white/10 hover:bg-white/20 text-xs font-display font-bold px-3 rounded-lg">
+              Envoyer
+            </button>
+          </form>
+        </div>
+      )}
     </div>
   )
 }

@@ -11,6 +11,7 @@ from auth import hash_password
 from routers import (
     auth_router, users_router, events_router, items_router,
     feedback_router, settings_router, posts_router,
+    comments_router, chat_router, stats_router,
 )
 
 app = FastAPI(title="Les Potes")
@@ -45,6 +46,9 @@ app.include_router(items_router.router)
 app.include_router(feedback_router.router)
 app.include_router(settings_router.router)
 app.include_router(posts_router.router)
+app.include_router(comments_router.router)
+app.include_router(chat_router.router)
+app.include_router(stats_router.router)
 
 STATIC_DIR = "/app/static"
 
