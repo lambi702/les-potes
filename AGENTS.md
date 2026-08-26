@@ -17,6 +17,18 @@ Identique à dour-crew : FastAPI + SQLAlchemy + PostgreSQL, React/Vite + Tailwin
 docker compose build app && docker compose up -d app
 ```
 
+## ⚠️ Toujours traiter le feedback avant de considérer une session terminée
+La page Feedback (🧪, `feedback` table) sert à récolter les retours réels des potes. **Avant de finir toute intervention sur ce site**, lire les entrées ouvertes et les traiter :
+```bash
+docker compose exec -T db psql -U potes -d potes -c "
+SELECT f.id, f.category, f.status, u.display_name AS auteur, f.message
+FROM feedback f JOIN users u ON u.id = f.author_id
+WHERE f.status = 'open' ORDER BY f.created_at ASC;"
+```
+- Si le changement en cours répond à un feedback ouvert → le marquer résolu (`UPDATE feedback SET status='resolved' WHERE id=X;`, ou via l'API `/api/feedback/{id}/resolve`)
+- Si un feedback est encore pertinent mais pas traité dans cette session → le signaler explicitement à l'utilisateur, ne pas le laisser filer silencieusement
+- Le but : que les retours de la bande soient visiblement pris en compte, pas juste accumulés
+
 ## ⚠️ Pas de système de migration (pas d'Alembic) — déjà rencontré une fois ici
 `Base.metadata.create_all()` ne modifie jamais une table existante. L'ajout de `real_name` à `User` a nécessité cet ALTER TABLE manuel avant de redéployer — même réflexe pour toute future colonne :
 ```bash
